@@ -249,7 +249,7 @@ class IscsiTest(object):
             err = True
         if err:
             self.get_log(have_down)
-            sys.exit(1)
+        return err
 
 
     def check_target_lun_status(self, target, resource, conn):
@@ -318,6 +318,7 @@ class IscsiTest(object):
             switch.nodown_port1(port)
 
     def ckeck_drbd_status_spof(self, resource, have_down):
+        err = False
         if not have_down:
             result = self.ckeck_drbd_status(resource)
         else:
@@ -339,8 +340,9 @@ class IscsiTest(object):
                 utils.prt_log(self.conn.list_normal_vplx_ssh[0], f"When down node, resource status is not correct", 1)
                 result = False
         if not result:
+            err = True
             self.get_log(have_down)
-            sys.exit(1)
+        return err
 
 
     def ckeck_drbd_status(self, resource):

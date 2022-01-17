@@ -43,8 +43,13 @@ def run(scenarios_list, config):
 
 	versa_con = control.IscsiTest(stor_config)
 
-	#versa_con.ckeck_drbd_status_spof(pvc_resoure, False)
-	#versa_con.check_drbd_crm_res(pvc_resoure, False)
+	err = versa_con.ckeck_drbd_status_spof(pvc_resoure, False)
+	if not err:	
+		err = versa_con.check_drbd_crm_res(pvc_resoure, False)
+	if err:
+		clear_pvc_and_pod(go_meter_pod,namespace,lins_blkpvc_file)
+		exit(1)	
+		
 	left_times = times
 	while(left_times):
 		down = False	
@@ -64,8 +69,12 @@ def run(scenarios_list, config):
 		write_wait.wait()
 		write_wait.clear()
 
-		#versa_con.ckeck_drbd_status_spof(pvc_resoure, down)
-		#versa_con.check_drbd_crm_res(pvc_resoure, down)
+		err = versa_con.ckeck_drbd_status_spof(pvc_resoure, down)
+		if not err:	
+			err = versa_con.check_drbd_crm_res(pvc_resoure, down)
+		if err:
+			clear_pvc_and_pod(go_meter_pod,namespace,lins_blkpvc_file)		
+			exit(1)
 
 		logging.info("Go-meter start to compare")
 		command = "cd /go/src/app;./main compare"
@@ -81,14 +90,16 @@ def run(scenarios_list, config):
 		if not "Finish" in response:
 			utils.prt_log('', f"Go meter compare failed",1)
 			versa_con.get_log(down)
+			clear_pvc_and_pod(go_meter_pod,namespace,lins_blkpvc_file)
 			exit(1)
 		left_times = left_times - 1
 
+	clear_pvc_and_pod(go_meter_pod,namespace,lins_blkpvc_file)
+
+
+def clear_pvc_and_pod(go_meter_pod,namespace,lins_blkpvc_file):
 	kubecli.delete_pod(go_meter_pod, namespace)
 	kubecli.delete_pvc(lins_blkpvc_file)
-
-
-
 
 def runc(scenarios_list, config):
 	namespace = "kraken"
