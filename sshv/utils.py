@@ -7,7 +7,7 @@ import re
 import time
 import traceback
 from functools import wraps
-import ssh.log as log
+from sshv import log as log
 import os
 from stat import S_ISDIR as isdir
 import logging
